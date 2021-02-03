@@ -1,7 +1,7 @@
 import vk_api, json
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
-from datetime import time
+from datetime import time, datetime, timedelta, date
 from enum import Enum
 import requests
 import get_pictures
@@ -15,7 +15,7 @@ longpoll = VkLongPoll(vk_session)
 session = requests.Session()
 bot = '[club202310522|@public202310522]'
 
-class Weeks(Enum):
+class Weekdays(Enum):
     MON = 0
     TUE = 1
     WEN = 2
@@ -24,6 +24,7 @@ class Weeks(Enum):
     SAT = 5
     SUN = 6
 
+
 class lesson:
 
     def __init__(self, time, room, name):
@@ -31,40 +32,54 @@ class lesson:
         self.room = room
         self.name = name
 
+
 lessons=\
-            {'TUE': [lesson(time=time(9, 00, 00),  room='УЛК_1 №2.36',    name='Практика на С++'),
+            {Weekdays.TUE : 
+                    [lesson(time=time(9, 00, 00),  room='УЛК_1 №2.36',    name='Практика на С++'),
                      lesson(time=time(12, 20, 00), room='413 ГК',         name='Гармонический анализ'),
                      lesson(time=time(15, 55, 00), room='НК',             name='Иностранный язык'),
                      lesson(time=time(15, 5, 00),  room='_',              name='Физическая культура')],
-             'WEN': [lesson(time=time(9, 00, 00),  room='422 ГК',         name='Диффуренциальные уравнения'),
+             Weekdays.WEN: 
+                    [lesson(time=time(9, 00, 00),  room='422 ГК',         name='Диффуренциальные уравнения'),
                      lesson(time=time(10, 45, 00), room='_',              name='Физическая культура'),
                      lesson(time=time(12, 20, 00), room='?',              name='ТиПМС'),
                      lesson(time=time(17, 5, 00),  room='УЛК_2 №418-419', name='Базы данных')],
-             'THU': [lesson(time=time(9, 00, 00),  room='202 НК',         name='Гармонический анализ. Лекция'),
+             Weekdays.THU: 
+                    [lesson(time=time(9, 00, 00),  room='202 НК',         name='Гармонический анализ. Лекция'),
                      lesson(time=time(13, 55, 00), room='113 ГК',         name='Дискретные структуры. Лекция')],
-             'FRI': [lesson(time=time(9, 00, 00),  room='УЛК_1 №2.36',    name='Практика на С++'),
+             Weekdays.FRI: 
+                    [lesson(time=time(9, 00, 00),  room='УЛК_1 №2.36',    name='Практика на С++'),
                      lesson(time=time(13, 55, 00), room='512 ГК',         name='Теория вероятностей'),
                      lesson(time=time(15, 30, 00), room='518 ГК',         name='Дискретные структуры')],
-             'SUN': [lesson(time=time(9, 00, 00),  room='_',              name='Дифференциальные уравнения. Лекция'),
+             Weekdays.SUN: 
+                    [lesson(time=time(9, 00, 00),  room='_',              name='Дифференциальные уравнения. Лекция'),
                      lesson(time=time(10, 45, 00), room='_',              name='Теория вероятностей. Лекция'),
                      lesson(time=time(12, 20, 00), room='_',              name='ТиПМС. Лекция'),
                      lesson(time=time(13, 55, 00), room='_',              name='Базы данных. Лекция'),
                      lesson(time=time(16, 00, 00), room='_',              name='Введение в анализ данных. Лекция')]}
 
-def the_nearest_lesson(datetime):
-    time = datetime.time()
-    day = datetime.weekday()
 
-    min_delta = lessons[day][0].time - time
+def get_time_difference(t1, t2):
+    current_day = date.today()
+    return datetime.combine(current_day, t1) -  datetime.combine(current_day, t2)
+
+
+def the_nearest_lesson(datetime):
+    time = datetime.now().time()
+    day = Weekdays(datetime.now().weekday())
+
+    min_delta = get_time_difference(lessons[day][0].time, time)
     lesson_idx = 0
 
     for i in range(len(lessons[day])):
-        if lessons[i].time > time:
-            cur_delta = lessons[i].time - time
+        if lessons[day][i].time > time:
+            cur_delta = get_time_difference(lessons[day][i].time, time)
             if cur_delta < min_delta:
                 min_delta = cur_delta
                 lesson_idx = i
-    return '15:30 Матан'
+    
+    closest_lesson = lessons[day][lesson_idx]
+    return closest_lesson.name + ' в ' + closest_lesson.time.strftime("%H:%M") + '. Аудитория ' + closest_lesson.room
 
 def answer(id, text):
     vk_session.method('messages.send', {'chat_id' : id, 'message' : text, 'random_id' : 0})
