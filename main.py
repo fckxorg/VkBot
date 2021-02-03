@@ -92,8 +92,7 @@ def create_menu():
 
     keyboard.add_button(label='Расписание', color=VkKeyboardColor.POSITIVE)
     keyboard.add_line()
-    keyboard.add_callback_button(label='Ближайшая пара', color=VkKeyboardColor.SECONDARY,
-                                   payload={"type": "show_snackbar", "text": "Это исчезающее сообщение"})
+    keyboard.add_button(label='Ближайшая пара', color=VkKeyboardColor.POSITIVE)
     keyboard.add_line()
     keyboard.add_openlink_button(label='Полезные материалы', link="https://yandex.ru/")
     keyboard = keyboard.get_keyboard()
@@ -126,7 +125,6 @@ def main():
             id = event.user_id
             if list_of_users.count(id) == 0:
                 list_of_users.append(id)
-                print('id добавлено')
             response = event.text.lower()
             keyboard_menu = create_menu()
             if event.from_user and not event.from_me:
