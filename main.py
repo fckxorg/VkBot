@@ -142,7 +142,7 @@ def main():
                     send_message(id, message=the_nearest_lesson(event.datetime.now()), keyboard=keyboard_menu)
                 elif response in timetables.keys():
                     attachment = get_pictures.get(vk_session, session, timetables[response])
-                    send_message(id, message=response, attachment=attachment, keyboard=keyboard_menu)
+                    send_message(id, message=response.capitalize(), attachment=attachment, keyboard=keyboard_menu)
 
 
 while True:
