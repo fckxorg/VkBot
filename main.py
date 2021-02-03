@@ -11,6 +11,7 @@ vk_session = vk_api.VkApi(token=token)
 session_api = vk_session.get_api()
 longpoll = VkLongPoll(vk_session)
 session = requests.Session()
+bot = '[club202310522|@public202310522]'
 
 
 def answer(id, text):
@@ -24,7 +25,7 @@ def create_keyboard(response):
 
     if response == 'расписание':
 
-        keyboard.add_button('Вторник', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='Вторник', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
         keyboard.add_button('Среда', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
@@ -49,12 +50,12 @@ def main():
             keyboard = create_keyboard(response)
             if event.from_chat and not event.from_me:
                 if response == 'расписание':
-                    print(response)
                     send_message(id, message='Вот расписание', keyboard=keyboard)
-                elif response == 'вторник':
-                    print(response)
-                    attachment = get_pictures.get(vk_session, session, -202310522, session_api)
-                    send_message(id, message='Расписание на вторник', attachment=attachment)
+            if event.from_chat and event.to_me and 'вторник' in response:
+                attachment = get_pictures.get(vk_session, session, -202310522, session_api)
+                send_message(id, message='Расписание на вторник', attachment=attachment)
+                break
+
 
 while True:
     main()
