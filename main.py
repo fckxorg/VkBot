@@ -2,11 +2,16 @@ import vk_api, json
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor, VkKeyboardButton
 from datetime import datetime
+import requests
 import get_pictures
 
-vk_session = vk_api.VkApi(token = '8c9954383a63ff1f3be3426fc1cf27425d21114ed9f0712d1d8244eb3100ee04df1e8583a284f5391e484')
-longpoll = VkLongPoll(vk_session)
+token = '8c9954383a63ff1f3be3426fc1cf27425d21114ed9f0712d1d8244eb3100ee04df1e8583a284f5391e484'
+vk_session = vk_api.VkApi(token=token)
+
 session_api = vk_session.get_api()
+longpoll = VkLongPoll(vk_session)
+session = requests.Session()
+
 
 def answer(id, text):
     vk_session.method('messages.send', {'chat_id' : id, 'message' : text, 'random_id' : 0})
@@ -48,7 +53,7 @@ def main():
                     send_message(id, message='Вот расписание', keyboard=keyboard)
                 elif response == 'вторник':
                     print(response)
-                    attachment = get_pictures.get(vk_session, -202310522, session_api)
+                    attachment = get_pictures.get(vk_session, session, -202310522, session_api)
                     send_message(id, message='Расписание на вторник', attachment=attachment)
 
 while True:

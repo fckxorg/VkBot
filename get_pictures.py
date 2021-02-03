@@ -1,16 +1,12 @@
-def get(vk_session, id_group, vk):
-    try:
-        print('0')
-        attachment = ''
-        #max_num = vk.photos.get(owner_id=id_group, album_id='wall')['count']
-        #print(max_num)
-        pictures = vk.photos.get(owner_id=str(id_group), album_id='wall')['ítems']
-        buf = []
-        for element in pictures:
-            buf.append('photo' + str(id_group) + '_' + str(element['id']))
-        attachment = ','.join(buf)
-        print(attachment)
-        return attachment
-    except:
-        return get(vk_session, id_group, vk)
-        #id_group = -202310522
+def get(vk_session, session, id_group, vk):
+    attachments = []
+    from vk_api import VkUpload
+    upload = VkUpload(vk_session)
+    image_url = 'Ссылка на картинку'
+    image = session.get(image_url, stream=True)
+    photo = upload.photo_messages(photos=image.raw)[0]
+    attachments.append(
+        'photo{}_{}'.format(photo['owner_id'], photo['id'])
+    )
+    attachment = ','.join(attachments)
+
