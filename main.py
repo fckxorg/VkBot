@@ -1,7 +1,8 @@
 import vk_api, json
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor, VkKeyboardButton
-from datetime import datetime
+from datetime import time
+from enum import Enum
 import requests
 import get_pictures
 
@@ -13,12 +14,72 @@ longpoll = VkLongPoll(vk_session)
 session = requests.Session()
 bot = '[club202310522|@public202310522]'
 
+Weeks = Enum('Weeks', 'MON TUE WEN THU FRI SAT SUN')
+class Weeks(Enum):
+    MON = 0
+    TUE = 1
+    WEN = 2
+    THU = 3
+    FRI = 4
+    SAT = 5
+    SUN = 6
+
+class lesson:
+
+    def __init__(self, time, room, name):
+        self.time = time
+        self.room = room
+        self.name = name
+
+lessons=\
+            {'TUE': [lesson(time=time(9, 00, 00),  room='УЛК_1 №2.36',    name='Практика на С++'),
+                     lesson(time=time(12, 20, 00), room='413 ГК',         name='Гармонический анализ'),
+                     lesson(time=time(15, 55, 00), room='НК',             name='Иностранный язык'),
+                     lesson(time=time(15, 5, 00),  room='_',              name='Физическая культура')],
+             'WEN': [lesson(time=time(9, 00, 00),  room='422 ГК',         name='Диффуренциальные уравнения'),
+                     lesson(time=time(10, 45, 00), room='_',              name='Физическая культура'),
+                     lesson(time=time(12, 20, 00), room='?',              name='ТиПМС'),
+                     lesson(time=time(17, 5, 00),  room='УЛК_2 №418-419', name='Базы данных')],
+             'THU': [lesson(time=time(9, 00, 00),  room='202 НК',         name='Гармонический анализ. Лекция'),
+                     lesson(time=time(13, 55, 00), room='113 ГК',         name='Дискретные структуры. Лекция')],
+             'FRI': [lesson(time=time(9, 00, 00),  room='УЛК_1 №2.36',    name='Практика на С++'),
+                     lesson(time=time(13, 55, 00), room='512 ГК',         name='Теория вероятностей'),
+                     lesson(time=time(15, 30, 00), room='518 ГК',         name='Дискретные структуры')],
+             'SUN': [lesson(time=time(9, 00, 00),  room='_',              name='Дифференциальные уравнения. Лекция'),
+                     lesson(time=time(10, 45, 00), room='_',              name='Теория вероятностей. Лекция'),
+                     lesson(time=time(12, 20, 00), room='_',              name='ТиПМС. Лекция'),
+                     lesson(time=time(13, 55, 00), room='_',              name='Базы данных. Лекция'),
+                     lesson(time=time(16, 00, 00), room='_',              name='Введение в анализ данных. Лекция')]}
+
+def the_nearest_lesson(datetime):
+    week = datetime.weekday()
+    time = datetime.time()
+    for key in lessons:
+        if week == key:
+            min = lesson[key][0][time]
+            for element in lesson[key]:
+                if min > element[time]:
+                    min = element[time]
+                    answer = element
+            return answer
+    return
 
 def answer(id, text):
     vk_session.method('messages.send', {'chat_id' : id, 'message' : text, 'random_id' : 0})
 
 def timetable(id, text, keyboard):
     vk_session.method('messages.send', {'chat_id' : id, 'message' : text, 'random_id' : 0, 'keyboard' : keyboard})
+
+def create_menu():
+    keyboard = VkKeyboard(one_time=False, inline=True)
+
+    keyboard.add_button(label='Расписание', color=VkKeyboardColor.POSITIVE)
+    keyboard.add_line()
+    keyboard.add_button(label='Ближайщая пара', color=VkKeyboardColor.POSITIVE)
+    keyboard.add_line()
+    keyboard.add_button(label='Полезные материалы', color=VkKeyboardColor.POSITIVE)
+    keyboard = keyboard.get_keyboard()
+    return keyboard
 
 def create_keyboard(response):
     keyboard = VkKeyboard(one_time=True)
@@ -35,7 +96,6 @@ def create_keyboard(response):
         keyboard.add_line()
         keyboard.add_button('Суббота', color=VkKeyboardColor.POSITIVE)
 
-    #elif response == 'вторник':
     keyboard = keyboard.get_keyboard()
     return keyboard
 
@@ -47,14 +107,25 @@ def main():
         if event.type == VkEventType.MESSAGE_NEW:
             id = event.chat_id
             response = event.text.lower()
-            keyboard = create_keyboard(response)
             if event.from_chat and not event.from_me:
+                if response == 'начать':
+                    keyboard = create_menu()
+                    send_message(id, message='Возможные действия', keyboard=keyboard)
                 if response == 'расписание':
+                    keyboard = create_keyboard(response)
                     send_message(id, message='Вот расписание', keyboard=keyboard)
-            if event.from_chat and event.to_me and 'вторник' in response:
-                attachment = get_pictures.get(vk_session, session, -202310522, session_api)
-                send_message(id, message='Расписание на вторник', attachment=attachment)
-                break
+                elif response == 'ближайщая пара':
+                    the_nearest_lesson(datetime=event.datetime.now())
+                #elif response == 'материалы':
+
+            if event.from_chat and event.to_me:
+                if 'вторник' in response:
+                    attachment = get_pictures.get(vk_session, session, -202310522, session_api)
+                    send_message(id, message='Расписание на вторник', attachment=attachment)
+                elif 'расписание' in response:
+                    keyboard = create_keyboard('расписание')
+                    send_message(id, message='Вот расписание', keyboard=keyboard)
+
 
 
 while True:
