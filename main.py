@@ -32,6 +32,11 @@ class lesson:
         self.room = room
         self.name = name
 
+timetables = {'вторник' : 'https://raw.githubusercontent.com/KristinaKulabuhova/VkBot/master/pictures/Tuesday.jpg',
+              'среда' : 'https://raw.githubusercontent.com/KristinaKulabuhova/VkBot/master/pictures/Wednesday.jpg',
+              'четверг' : 'https://raw.githubusercontent.com/KristinaKulabuhova/VkBot/master/pictures/Thursday.jpg',
+              'пятница' : 'https://raw.githubusercontent.com/KristinaKulabuhova/VkBot/master/pictures/Friday.jpg',
+              'суббота' : 'https://raw.githubusercontent.com/KristinaKulabuhova/VkBot/master/pictures/Saturday.jpg'}
 
 lessons=\
             {Weekdays.TUE : 
@@ -135,9 +140,9 @@ def main():
                     send_message(id, message='Выберите день', keyboard=keyboard)
                 elif response == 'ближайшая пара':
                     send_message(id, message=the_nearest_lesson(event.datetime.now()), keyboard=keyboard_menu)
-                elif 'вторник' == response:
-                    attachment = get_pictures.get(vk_session, session, -202310522, session_api)
-                    send_message(id, message='Расписание на вторник', attachment=attachment, keyboard=keyboard_menu)
+                elif response in timetables.keys():
+                    attachment = get_pictures.get(vk_session, session, timetables[response])
+                    send_message(id, message=response, attachment=attachment, keyboard=keyboard_menu)
 
 
 while True:
