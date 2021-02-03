@@ -1,8 +1,12 @@
 import vk_api, json
 from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor, VkKeyboardButton
+from datetime import datetime
+import get_pictures
 
 vk_session = vk_api.VkApi(token = '8c9954383a63ff1f3be3426fc1cf27425d21114ed9f0712d1d8244eb3100ee04df1e8583a284f5391e484')
 longpoll = VkLongPoll(vk_session)
+session_api = vk_session.get_api()
 
 def answer(id, text):
     vk_session.method('messages.send', {'chat_id' : id, 'message' : text, 'random_id' : 0})
@@ -10,54 +14,42 @@ def answer(id, text):
 def timetable(id, text, keyboard):
     vk_session.method('messages.send', {'chat_id' : id, 'message' : text, 'random_id' : 0, 'keyboard' : keyboard})
 
+def create_keyboard(response):
+    keyboard = VkKeyboard(one_time=True)
 
-def get_but(text, color):
-    return {
-        "action": {
-            "type": "text",
-            "payload": "{\"button\": \"" + "1" + "\"}",
-            "label": f"{text}"
-        },
-        "color": f"{color}"
-    }
+    if response == 'расписание':
 
-keyboard0 = {
-    "one_time": False,
-    "buttons": [
-        [get_but('Расписание', 'positive')],
-        [get_but('Ближайщая пара', 'positive')]
-    ]
-}
+        keyboard.add_button('Вторник', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_line()
+        keyboard.add_button('Среда', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_line()
+        keyboard.add_button('Четверг', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_line()
+        keyboard.add_button('Пятница', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_line()
+        keyboard.add_button('Суббота', color=VkKeyboardColor.POSITIVE)
 
-keyboard0 = json.dumps(keyboard0, ensure_ascii = False).encode('utf-8')
-keyboard0 = str(keyboard0.decode('utf-8'))
+    #elif response == 'вторник':
+    keyboard = keyboard.get_keyboard()
+    return keyboard
 
-keyboard1 = {
-    "one_time": True,
-    "buttons": [
-        [get_but('Вторник', 'positive')],
-        [get_but('Среда', 'positive')],
-        [get_but('Четверг', 'positive')],
-        [get_but('Пятница', 'positive')],
-        [get_but('Суббота', 'positive')]
-    ]
-  }
-keyboard1 = json.dumps(keyboard1, ensure_ascii = False).encode('utf-8')
-keyboard1 = str(keyboard1.decode('utf-8'))
+def send_message(id, message=None, attachment=None, keyboard=None):
+    vk_session.method('messages.send', {'chat_id': id, 'message': message, 'random_id': 0, 'attachment': attachment, 'keyboard': keyboard})
 
 def main():
-    msg = 'Возможные действия'
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW:
             id = event.chat_id
-            timetable(id, msg, keyboard0)
-            if event.to_me or event.from_me:
-                if event.from_chat:
-
-                    msg = event.text.lower()
-
-                    if msg == 'расписание':
-                        timetable(id, msg, keyboard1)
+            response = event.text.lower()
+            keyboard = create_keyboard(response)
+            if event.from_chat and not event.from_me:
+                if response == 'расписание':
+                    print(response)
+                    send_message(id, message='Вот расписание', keyboard=keyboard)
+                elif response == 'вторник':
+                    print(response)
+                    attachment = get_pictures.get(vk_session, -202310522, session_api)
+                    send_message(id, message='Расписание на вторник', attachment=attachment)
 
 while True:
     main()
