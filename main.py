@@ -1,11 +1,12 @@
 import vk_api, json
 from vk_api.longpoll import VkLongPoll, VkEventType
-from vk_api.keyboard import VkKeyboard, VkKeyboardColor, VkKeyboardButton
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from datetime import time
 from enum import Enum
 import requests
 import get_pictures
 
+list_of_users = []
 token = '8c9954383a63ff1f3be3426fc1cf27425d21114ed9f0712d1d8244eb3100ee04df1e8583a284f5391e484'
 vk_session = vk_api.VkApi(token=token)
 
@@ -52,17 +53,19 @@ lessons=\
                      lesson(time=time(16, 00, 00), room='_',              name='Введение в анализ данных. Лекция')]}
 
 def the_nearest_lesson(datetime):
-    week = datetime.weekday()
     time = datetime.time()
-    for key in lessons:
-        if week == key:
-            min = lesson[key][0][time]
-            for element in lesson[key]:
-                if min > element[time]:
-                    min = element[time]
-                    answer = element
-            return answer
-    return
+    day = datetime.weekday()
+
+    min_delta = lessons[day][0].time - time
+    lesson_idx = 0
+
+    for i in range(len(lessons[day])):
+        if lessons[i].time > time:
+            cur_delta = lessons[i].time - time
+            if cur_delta < min_delta:
+                min_delta = cur_delta
+                lesson_idx = i
+    return '15:30 Матан'
 
 def answer(id, text):
     vk_session.method('messages.send', {'chat_id' : id, 'message' : text, 'random_id' : 0})
@@ -71,13 +74,14 @@ def timetable(id, text, keyboard):
     vk_session.method('messages.send', {'chat_id' : id, 'message' : text, 'random_id' : 0, 'keyboard' : keyboard})
 
 def create_menu():
-    keyboard = VkKeyboard(one_time=False, inline=True)
+    keyboard = VkKeyboard(one_time=False, inline=False)
 
     keyboard.add_button(label='Расписание', color=VkKeyboardColor.POSITIVE)
     keyboard.add_line()
-    keyboard.add_button(label='Ближайщая пара', color=VkKeyboardColor.POSITIVE)
+    keyboard.add_callback_button(label='Ближайшая пара', color=VkKeyboardColor.SECONDARY,
+                                   payload={"type": "show_snackbar", "text": "Это исчезающее сообщение"})
     keyboard.add_line()
-    keyboard.add_button(label='Полезные материалы', color=VkKeyboardColor.POSITIVE)
+    keyboard.add_openlink_button(label='Полезные материалы', link="https://yandex.ru/")
     keyboard = keyboard.get_keyboard()
     return keyboard
 
@@ -88,44 +92,44 @@ def create_keyboard(response):
 
         keyboard.add_button(label='Вторник', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
-        keyboard.add_button('Среда', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='Среда', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
-        keyboard.add_button('Четверг', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='Четверг', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
-        keyboard.add_button('Пятница', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='Пятница', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
-        keyboard.add_button('Суббота', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='Суббота', color=VkKeyboardColor.POSITIVE)
 
     keyboard = keyboard.get_keyboard()
     return keyboard
 
 def send_message(id, message=None, attachment=None, keyboard=None):
-    vk_session.method('messages.send', {'chat_id': id, 'message': message, 'random_id': 0, 'attachment': attachment, 'keyboard': keyboard})
+    vk_session.method('messages.send', {'user_id': id, 'message': message, 'random_id': 0, 'attachment': attachment, 'keyboard': keyboard})
 
 def main():
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW:
-            id = event.chat_id
+            id = event.user_id
+            if list_of_users.count(id) == 0:
+                list_of_users.append(id)
+                print('id добавлено')
             response = event.text.lower()
-            if event.from_chat and not event.from_me:
+            keyboard_menu = create_menu()
+            if event.from_user and not event.from_me:
                 if response == 'начать':
-                    keyboard = create_menu()
-                    send_message(id, message='Возможные действия', keyboard=keyboard)
+                    send_message(id, message='Возможные действия', keyboard=keyboard_menu)
                 if response == 'расписание':
                     keyboard = create_keyboard(response)
                     send_message(id, message='Вот расписание', keyboard=keyboard)
-                elif response == 'ближайщая пара':
-                    the_nearest_lesson(datetime=event.datetime.now())
-                #elif response == 'материалы':
-
-            if event.from_chat and event.to_me:
-                if 'вторник' in response:
+                elif response == 'ближайшая пара':
+                    send_message(id, message=the_nearest_lesson(event.datetime.now()), keyboard=keyboard_menu)
+                elif 'вторник' == response:
                     attachment = get_pictures.get(vk_session, session, -202310522, session_api)
-                    send_message(id, message='Расписание на вторник', attachment=attachment)
-                elif 'расписание' in response:
+                    send_message(id, message='Расписание на вторник', attachment=attachment, keyboard=keyboard_menu)
+                elif 'расписание' == response:
                     keyboard = create_keyboard('расписание')
                     send_message(id, message='Вот расписание', keyboard=keyboard)
-
+                #elif 'полезные материалы' in response
 
 
 while True:
