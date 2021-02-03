@@ -15,7 +15,6 @@ longpoll = VkLongPoll(vk_session)
 session = requests.Session()
 bot = '[club202310522|@public202310522]'
 
-Weeks = Enum('Weeks', 'MON TUE WEN THU FRI SAT SUN')
 class Weeks(Enum):
     MON = 0
     TUE = 1
@@ -120,16 +119,12 @@ def main():
                     send_message(id, message='Возможные действия', keyboard=keyboard_menu)
                 if response == 'расписание':
                     keyboard = create_keyboard(response)
-                    send_message(id, message='Вот расписание', keyboard=keyboard)
+                    send_message(id, message='Выберите день', keyboard=keyboard)
                 elif response == 'ближайшая пара':
                     send_message(id, message=the_nearest_lesson(event.datetime.now()), keyboard=keyboard_menu)
                 elif 'вторник' == response:
                     attachment = get_pictures.get(vk_session, session, -202310522, session_api)
                     send_message(id, message='Расписание на вторник', attachment=attachment, keyboard=keyboard_menu)
-                elif 'расписание' == response:
-                    keyboard = create_keyboard('расписание')
-                    send_message(id, message='Вот расписание', keyboard=keyboard)
-                #elif 'полезные материалы' in response
 
 
 while True:
