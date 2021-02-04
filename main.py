@@ -68,8 +68,7 @@ def get_time_difference(t1, t2):
     current_day = date.today()
     return datetime.combine(current_day, t1) -  datetime.combine(current_day, t2)
 
-
-def the_nearest_lesson(datetime):
+def the_nearest_lesson():
     time = datetime.now().time()
     day = Weekdays(datetime.now().weekday())
 
@@ -82,7 +81,14 @@ def the_nearest_lesson(datetime):
             if cur_delta < min_delta:
                 min_delta = cur_delta
                 lesson_idx = i
+
+    return (lesson_idx, day)
   
+
+def the_nearest_lesson_string():
+
+    lesson_idx, day = the_nearest_lesson()
+    
     if lesson_idx == -1:
         return 'На сегодня пары закончились)'
 
@@ -142,11 +148,24 @@ def main():
                     keyboard = create_keyboard(response)
                     send_message(id, message='Выберите день', keyboard=keyboard)
                 elif response == 'ближайшая пара':
-                    send_message(id, message=the_nearest_lesson(event.datetime.now()), keyboard=keyboard_menu)
+                    send_message(id, message=the_nearest_lesson_string(), keyboard=keyboard_menu)
                 elif response in timetables.keys():
                     attachment = get_pictures.get(vk_session, session, timetables[response])
                     send_message(id, message=response.capitalize(), attachment=attachment, keyboard=keyboard_menu)
 
 
-while True:
-    main()
+def main_thread_worker():
+    while True:
+        main()
+
+def notification_thread_worker():
+    while True:
+        lesson_idx, day = the_nearest_lesson()
+        if lesson_idx != -1:
+            delta = get_time_difference(lessons[day][lesson_idx].time, datetime.now().time)
+            ten_minute_delta = timedelta(minutes=10)
+
+            if delta <= ten_minute_delta:
+                    
+
+
