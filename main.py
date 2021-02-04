@@ -8,13 +8,16 @@ import get_pictures
 
 list_of_users = []
 token = '8c9954383a63ff1f3be3426fc1cf27425d21114ed9f0712d1d8244eb3100ee04df1e8583a284f5391e484'
-vk_session = vk_api.VkApi(token=token)
+group_932 = []
+group_Kr = []
+id_headman = 81973081
+id_Kristina = 153378901
 
+vk_session = vk_api.VkApi(token=token)
 session_api = vk_session.get_api()
 longpoll = VkLongPoll(vk_session)
 session = requests.Session()
-bot = '[club202310522|@public202310522]'
-id_headman = 153378901
+
 
 class Weekdays(Enum):
     MON = 0
@@ -28,41 +31,44 @@ class Weekdays(Enum):
 
 class lesson:
 
-    def __init__(self, time, room, name):
-        self.time = time
-        self.room = room
-        self.name = name
+    def __init__(self, time, room, name, group):
+        self.time  = time
+        self.room  = room
+        self.name  = name
+        self.group = group
 
 timetables = {'вторник' : 'https://raw.githubusercontent.com/KristinaKulabuhova/VkBot/master/pictures/Tuesday.jpg',
-              'среда' : 'https://raw.githubusercontent.com/KristinaKulabuhova/VkBot/master/pictures/Wednesday.jpg',
+              'среда'   : 'https://raw.githubusercontent.com/KristinaKulabuhova/VkBot/master/pictures/Wednesday.jpg',
               'четверг' : 'https://raw.githubusercontent.com/KristinaKulabuhova/VkBot/master/pictures/Thursday.jpg',
               'пятница' : 'https://raw.githubusercontent.com/KristinaKulabuhova/VkBot/master/pictures/Friday.jpg',
               'суббота' : 'https://raw.githubusercontent.com/KristinaKulabuhova/VkBot/master/pictures/Saturday.jpg'}
 
 lessons=\
             {Weekdays.TUE : 
-                    [lesson(time=time(9, 00, 00),  room='УЛК_1 №2.36',    name='Практика на С++'),
-                     lesson(time=time(12, 20, 00), room='413 ГК',         name='Гармонический анализ'),
-                     lesson(time=time(15, 55, 00), room='НК',             name='Иностранный язык'),
-                     lesson(time=time(15, 5, 00),  room='_',              name='Физическая культура')],
+                    [lesson(time=time(9, 00, 00),  room='УЛК_1 №2.36',     name='Практика на С++',                                    group=group_932),
+                     lesson(time=time(12, 20, 00), room='413 ГК',          name='Гармонический анализ',                               group=list_of_users),
+                     lesson(time=time(15, 55, 00), room='НК',              name='Иностранный язык',                                   group=list_of_users),
+                     lesson(time=time(15, 5, 00),  room='(без аудитории)', name='Физическая культура',                                group=list_of_users)],
              Weekdays.WEN: 
-                    [lesson(time=time(9, 00, 00),  room='422 ГК',         name='Диффуренциальные уравнения'),
-                     lesson(time=time(10, 45, 00), room='_',              name='Физическая культура'),
-                     lesson(time=time(12, 20, 00), room='?',              name='ТиПМС'),
-                     lesson(time=time(17, 5, 00),  room='УЛК_2 №418-419', name='Базы данных')],
+                    [lesson(time=time(9, 00, 00),  room='422 ГК',          name='Диффуренциальные уравнения',                         group=list_of_users),
+                     lesson(time=time(10, 45, 00), room='(без аудитории)', name='Физическая культура',                                group=list_of_users),
+                     lesson(time=time(12, 20, 00), room='?',               name='ТиПМС',                                              group=list_of_users),
+                     lesson(time=time(17, 5, 00),  room='УЛК_2 №418-419',  name='Базы данных',                                        group=list_of_users)],
              Weekdays.THU: 
-                    [lesson(time=time(9, 00, 00),  room='202 НК',         name='Гармонический анализ. Лекция'),
-                     lesson(time=time(13, 55, 00), room='113 ГК',         name='Дискретные структуры. Лекция')],
+                    [lesson(time=time(9, 00, 00),  room='202 НК',          name='Гармонический анализ. Лекция',                       group=list_of_users),
+                     lesson(time=time(13, 55, 00), room='113 ГК',          name='Дискретные структуры. Лекция',                       group=list_of_users),
+                     lesson(time=time(17, 5, 00),  room='(без аудитории)', name='Языки программирования и теория компиляции. Лекция', group=group_Kr)],
              Weekdays.FRI: 
-                    [lesson(time=time(9, 00, 00),  room='УЛК_1 №2.36',    name='Практика на С++'),
-                     lesson(time=time(13, 55, 00), room='512 ГК',         name='Теория вероятностей'),
-                     lesson(time=time(15, 30, 00), room='518 ГК',         name='Дискретные структуры')],
+                    [lesson(time=time(9, 00, 00),  room='УЛК_1 №2.36',     name='Практика на С++',                                    group=group_932),
+                     lesson(time=time(10, 45, 00), room='УЛК_2 №425',      name='АКОС',                                               group=group_Kr),
+                     lesson(time=time(13, 55, 00), room='512 ГК',          name='Теория вероятностей',                                group=list_of_users),
+                     lesson(time=time(15, 30, 00), room='518 ГК',          name='Дискретные структуры',                               group=list_of_users)],
              Weekdays.SUN: 
-                    [lesson(time=time(9, 00, 00),  room='_',              name='Дифференциальные уравнения. Лекция'),
-                     lesson(time=time(10, 45, 00), room='_',              name='Теория вероятностей. Лекция'),
-                     lesson(time=time(12, 20, 00), room='_',              name='ТиПМС. Лекция'),
-                     lesson(time=time(13, 55, 00), room='_',              name='Базы данных. Лекция'),
-                     lesson(time=time(16, 00, 00), room='_',              name='Введение в анализ данных. Лекция')]}
+                    [lesson(time=time(9, 00, 00),  room='(без аудитории)', name='Дифференциальные уравнения. Лекция',                 group=list_of_users),
+                     lesson(time=time(10, 45, 00), room='(без аудитории)', name='Теория вероятностей. Лекция',                        group=list_of_users),
+                     lesson(time=time(12, 20, 00), room='(без аудитории)', name='ТиПМС. Лекция',                                      group=list_of_users),
+                     lesson(time=time(13, 55, 00), room='(без аудитории)', name='Базы данных. Лекция',                                group=list_of_users),
+                     lesson(time=time(16, 00, 00), room='(без аудитории)', name='Введение в анализ данных. Лекция',                   group=list_of_users)]}
 
 
 def get_time_difference(t1, t2):
@@ -90,22 +96,18 @@ def the_nearest_lesson(datetime):
     closest_lesson = lessons[day][lesson_idx]
     return closest_lesson.name + ' в ' + closest_lesson.time.strftime("%H:%M") + '. Аудитория ' + closest_lesson.room
 
-def answer(id, text):
-    vk_session.method('messages.send', {'chat_id' : id, 'message' : text, 'random_id' : 0})
-
-def timetable(id, text, keyboard):
-    vk_session.method('messages.send', {'chat_id' : id, 'message' : text, 'random_id' : 0, 'keyboard' : keyboard})
 
 def create_menu():
-    keyboard = VkKeyboard(one_time=False, inline=False)
+    keyboard = VkKeyboard(one_time=False)
 
-    keyboard.add_button(label='Расписание', color=VkKeyboardColor.POSITIVE)
+    keyboard.add_button(label='Расписание',     color=VkKeyboardColor.POSITIVE)
     keyboard.add_line()
     keyboard.add_button(label='Ближайшая пара', color=VkKeyboardColor.POSITIVE)
     keyboard.add_line()
     keyboard.add_openlink_button(label='Полезные материалы', link="https://drive.google.com/drive/folders/1H7jYyMx5fR7wAt6kDrakeFneDmGpru3O")
-    keyboard = keyboard.get_keyboard()
-    return keyboard
+
+    return keyboard.get_keyboard()
+
 
 def create_keyboard(response):
     keyboard = VkKeyboard(one_time=True)
@@ -114,7 +116,7 @@ def create_keyboard(response):
 
         keyboard.add_button(label='Вторник', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
-        keyboard.add_button(label='Среда', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='Среда',   color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
         keyboard.add_button(label='Четверг', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
@@ -122,14 +124,16 @@ def create_keyboard(response):
         keyboard.add_line()
         keyboard.add_button(label='Суббота', color=VkKeyboardColor.POSITIVE)
 
-    keyboard = keyboard.get_keyboard()
-    return keyboard
+    return keyboard.get_keyboard()
+
 
 def send_message(id, message=None, attachment=None, keyboard=None):
     vk_session.method('messages.send', {'user_id': id, 'message': message, 'random_id': 0, 'attachment': attachment, 'keyboard': keyboard})
 
+
 def main():
     for event in longpoll.listen():
+
         if event.type == VkEventType.MESSAGE_NEW:
             id = event.user_id
             response = event.text.lower()
@@ -137,7 +141,10 @@ def main():
 
             if list_of_users.count(id) == 0:
                 list_of_users.append(id)
-                print(id)
+                if id == id_Kristina:
+                    group_Kr.append(id)
+                else:
+                    group_932.append(id)
 
             if event.from_user and id == id_headman and not event.from_me:
                 if 'all' in response:
@@ -148,18 +155,21 @@ def main():
                             send_message(user, message='Сообщение отправлено', keyboard=keyboard_menu)
 
             elif event.from_user and not event.from_me:
-                if response == 'начать':
+
+                if response ==   'начать':
                     send_message(id, message='Возможные действия', keyboard=keyboard_menu)
-                if response == 'расписание':
+                if response ==   'расписание':
                     keyboard = create_keyboard(response)
                     send_message(id, message='Выберите день', keyboard=keyboard)
-                elif response == 'ближайшая пара':
+                if response == 'ближайшая пара':
                     send_message(id, message=the_nearest_lesson(event.datetime.now()), keyboard=keyboard_menu)
+
                 elif response in timetables.keys():
                     attachment = get_pictures.get(vk_session, session, timetables[response])
                     send_message(id, message=response.capitalize(), attachment=attachment, keyboard=keyboard_menu)
                 else:
                     send_message(id, message='', keyboard=keyboard_menu)
+
 
 while True:
     main()
