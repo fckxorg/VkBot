@@ -14,6 +14,7 @@ session_api = vk_session.get_api()
 longpoll = VkLongPoll(vk_session)
 session = requests.Session()
 bot = '[club202310522|@public202310522]'
+id_headman = 153378901
 
 class Weekdays(Enum):
     MON = 0
@@ -108,7 +109,7 @@ def create_menu():
     keyboard.add_line()
     keyboard.add_button(label='Ближайшая пара', color=VkKeyboardColor.POSITIVE)
     keyboard.add_line()
-    keyboard.add_openlink_button(label='Полезные материалы', link="https://yandex.ru/")
+    keyboard.add_openlink_button(label='Полезные материалы', link="https://drive.google.com/drive/folders/1H7jYyMx5fR7wAt6kDrakeFneDmGpru3O")
     keyboard = keyboard.get_keyboard()
     return keyboard
 
@@ -137,11 +138,22 @@ def main():
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW:
             id = event.user_id
-            if list_of_users.count(id) == 0:
-                list_of_users.append(id)
             response = event.text.lower()
             keyboard_menu = create_menu()
-            if event.from_user and not event.from_me:
+
+            if list_of_users.count(id) == 0:
+                list_of_users.append(id)
+                print(id)
+
+            if event.from_user and id == id_headman and not event.from_me:
+                if 'all' in response:
+                    for user in list_of_users:
+                        if not user == id_headman:
+                            send_message(user, message=event.text, keyboard=keyboard_menu)
+                        else:
+                            send_message(user, message='Сообщение отправлено', keyboard=keyboard_menu)
+
+            elif event.from_user and not event.from_me:
                 if response == 'начать':
                     send_message(id, message='Возможные действия', keyboard=keyboard_menu)
                 if response == 'расписание':
@@ -152,7 +164,8 @@ def main():
                 elif response in timetables.keys():
                     attachment = get_pictures.get(vk_session, session, timetables[response])
                     send_message(id, message=response.capitalize(), attachment=attachment, keyboard=keyboard_menu)
-
+                else:
+                    send_message(id, message='', keyboard=keyboard_menu)
 
 def main_thread_worker():
     while True:
