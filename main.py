@@ -73,8 +73,8 @@ def the_nearest_lesson(datetime):
     time = datetime.now().time()
     day = Weekdays(datetime.now().weekday())
 
-    min_delta = get_time_difference(lessons[day][0].time, time)
-    lesson_idx = 0
+    min_delta = timedelta.max
+    lesson_idx = -1
 
     for i in range(len(lessons[day])):
         if lessons[day][i].time > time:
@@ -82,7 +82,10 @@ def the_nearest_lesson(datetime):
             if cur_delta < min_delta:
                 min_delta = cur_delta
                 lesson_idx = i
-    
+  
+    if lesson_idx == -1:
+        return 'На сегодня пары закончились)'
+
     closest_lesson = lessons[day][lesson_idx]
     return closest_lesson.name + ' в ' + closest_lesson.time.strftime("%H:%M") + '. Аудитория ' + closest_lesson.room
 
