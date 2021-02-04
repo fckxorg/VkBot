@@ -5,6 +5,8 @@ from datetime import time, datetime, timedelta, date
 from enum import Enum
 import requests
 import get_pictures
+import threading
+from time import sleep
 
 list_of_users = []
 token = '8c9954383a63ff1f3be3426fc1cf27425d21114ed9f0712d1d8244eb3100ee04df1e8583a284f5391e484'
@@ -134,12 +136,15 @@ def create_keyboard(response):
 def send_message(id, message=None, attachment=None, keyboard=None):
     vk_session.method('messages.send', {'user_id': id, 'message': message, 'random_id': 0, 'attachment': attachment, 'keyboard': keyboard})
 
+# global variable
+keyboard_menu = create_menu()
+
+
 def main():
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW:
             id = event.user_id
             response = event.text.lower()
-            keyboard_menu = create_menu()
 
             if list_of_users.count(id) == 0:
                 list_of_users.append(id)
@@ -167,18 +172,43 @@ def main():
                 else:
                     send_message(id, message='', keyboard=keyboard_menu)
 
-def main_thread_worker():
-    while True:
-        main()
 
 def notification_thread_worker():
+    last_lesson = -1
+
     while True:
         lesson_idx, day = the_nearest_lesson()
-        if lesson_idx != -1:
-            delta = get_time_difference(lessons[day][lesson_idx].time, datetime.now().time)
+        
+        if lesson_idx != -1 and last_lesson != lesson_idx:
+            delta = get_time_difference(lessons[day][lesson_idx].time, datetime.now().time())
             ten_minute_delta = timedelta(minutes=10)
 
             if delta <= ten_minute_delta:
-                    
+                for user in list_of_users:
+                    send_message(user, message='Через десять минут начнется ' + lessons[day][lesson_idx].name + ' в аудитории ' + lessons[day][lesson_idx].room, keyboard=keyboard_menu)
+                    last_lesson = lesson_idx
+        else:
+            sleep(15)
 
+class MainThreadClass(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        while True:
+            main()
+
+class NotificationThreadClass(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        notification_thread_worker()
+
+
+main_thread = MainThreadClass()
+notification_thread = NotificationThreadClass()
+
+main_thread.start()
+notification_thread.start()
 
